@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('评分')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-chengji-add" th:object="${ks}">
+        <input name="ksId" th:field="*{ksId}" type="hidden">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">姓名：</label>
+            <div class="col-sm-8">
+                <input name="ksUsername" th:field="*{ksUsername}" readonly="readonly" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">历程：</label>
+            <div class="col-sm-8">
+                <input name="ksLc" th:field="*{ksLc}" readonly="readonly" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">耗时：</label>
+            <div class="col-sm-8">
+                <input name="ksHs" th:field="*{ksHs}" readonly="readonly" class="form-control" type="text">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">考核时间：</label>
+            <div class="col-sm-8">
+                <div class="input-group date">
+                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                    <input name="ksTime" class="form-control" placeholder="yyyy-MM-dd" type="text">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">分数：</label>
+            <div class="col-sm-8">
+                <input name="chengjiMark" class="form-control" type="text">
+            </div>
+        </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: datetimepicker-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/chengji"
+        $("#form-chengji-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-chengji-add').serialize());
+            }
+        }
+
+        $("input[name='ksTime']").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            autoclose: true,
+            minView: 0,
+            minuteStep:1
+        });
+
+    </script>
+</body>
+</html>

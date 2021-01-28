@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('成绩统计及正态分布信息列表')" />
+    <style type="text/css">
+        #main {
+            height: 500px;
+            border: 1px red solid;
+            width: 100%;
+        }
+
+        #main1 {
+            height: 500px;
+            border: 1px red solid;
+            width: 100%;
+        }
+
+        #main2 {
+            height: 500px;
+            border: 1px red solid;
+            width: 100%;
+        }
+
+        #box1 {
+            border: 1px #E8E8E8 solid;
+            overflow: hidden;
+            float: left;
+            width: 99%;
+
+        }
+
+        #box2 {
+            border: 1px #E8E8E8 solid;
+            overflow: hidden;
+            float: right;
+            width: 49%;
+
+        }
+
+        #box4 {
+            border: 1px #E8E8E8 solid;
+            height: 550px;
+        }
+
+        .child {
+            height: 330px;
+            width: 49%;
+            border: 1px #778899 solid;
+            float: left;
+        }
+
+        .child1 {
+            height: 330px;
+            width: 49%;
+            border: 1px #778899 solid;
+            float: right;
+        }
+
+        .top {
+            width: 99%;
+            text-align: center;
+            margin-top: 20px;
+            float: left;
+        }
+
+        .mid {
+            border: 1px black solid;
+            float: left;
+            margin-top: 10px;
+            width: 100%;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/3.0.2/echarts.min.js"></script>
+
+    <script type="text/javascript">
+        function fun(x, u, a) {
+            return (1 / Math.sqrt(2 * Math.PI) * a) * Math.exp(-1 * ((x - u) * (x - u)) / (2 * a * a));
+        }
+
+        function addParam(arr, target) {
+            //是否是等于
+            var flag = false;
+            var target = parseFloat(target);
+            //最小
+            if (target < parseFloat(arr[0])) {
+                arr.unshift(target.toString());
+                return arr;
+            }
+
+            //最大
+            if (target > parseFloat(arr[arr.length - 1])) {
+                arr.push(target.toString());
+                return arr;
+            }
+
+            //中间
+            for (var i = 0; i < arr.length; i++) {
+                if (parseFloat(arr[i]) > target) {
+                    if (arr[i - 1] == target)
+                        flag = true;
+                    break;
+                }
+            }
+            if (flag) {
+                return arr;
+            } else {
+                arr.splice(i, 0, target.toString());
+                return arr;
+            }
+        }
+
+        function getTop(arr) {
+            var maxIndex = 0;
+            for (var i = 0; i < arr.length; i++) {
+                maxIndex = parseFloat(arr[i]) > parseFloat(arr[maxIndex]) ? i : maxIndex;
+            }
+            return parseFloat(arr[maxIndex]);
+
+        }
+
+        function getParam(low, mean, up, top) {
+            var res = {};
+            res['low'] = low;
+            res['mean'] = mean;
+            res['up'] = up;
+            res['top'] = top;
+
+            return res;
+
+        }
+
+        $(function() {
+            var myChart1 = echarts.init(document.getElementById('box1'));
+
+            //    debugger
+            var datas = [{
+                "data": {
+                    "boxplot": {
+                        "q1": "76",
+                        "q3": "87",
+                        "median": "79",
+                        "mean": "83.18",
+                        "lower": "55.9",
+                        "upper": "99"
+                    },
+                    "stdplot": {
+                        "xaxis": "55.9,65,66,69.9,71.5,77,77.6,77.8,81.9,85,87,87.9,88,89,98,99",
+                        "mean": "83.18",
+                        "lower": "55.9",
+                        "upper": "99",
+                        "yaxis": "1,1,1,1,1,3,1,1,1,1,1,4,2,2,3",
+                        "stdev": "11.401544"
+                    }
+                },
+                "idx": 1
+            }];
+            for (var i = 0; i < datas.length; i++) {
+                $("#box1").append("<div class='mid'></div>")
+                $("#box1").append("<div class='top' id='" + "top" + i + "'><h2>簇_" + datas[i].idx + "</h2></div>")
+                $("#box1").append("<div class='child' id='" + "child" + i + "'></div>")
+                var myChart = echarts.init(document.getElementById("child" + i));
+                var testData = [];
+                var data = [];
+                data.push(datas[i].data.boxplot.lower);
+                data.push(datas[i].data.boxplot.q1);
+                data.push(datas[i].data.boxplot.median);
+                data.push(datas[i].data.boxplot.q3);
+                data.push(datas[i].data.boxplot.upper);
+                testData.push(data);
+                var xdata = [datas[i].idx];
+
+                var option = {
+                    title: [{
+                        text: 'upper: Q3 + 1.5 * IRQ \nlower: Q1 - 1.5 * IRQ',
+                        borderColor: '#999',
+                        borderWidth: 1,
+                        textStyle: {
+                            fontSize: 14
+                        },
+                        left: '10%',
+                        top: '85%'
+                    }],
+                    tooltip: {
+                        trigger: 'item', //触发类型,数据项图形触发，主要在散点图，饼图等无类目轴的图表中使用。
+                        axisPointer: { //指示器类型。
+                            type: 'shadow'
+                        }
+                    },
+                    grid: { //直角坐标系网格。
+                        //show: true,//default: false
+                        left: '15%',
+                        right: '15%',
+                        bottom: '23%',
+                        //borderWidth: 1,
+                        //borderColor: '#000',
+                    },
+                    xAxis: { //X轴
+                        type: 'category', //'category' 类目轴，适用于离散的类目数据，为该类型时必须通过 data 设置类目数据。
+                        //data: data.axisData,
+                        data: xdata,
+                        boundaryGap: true, //类目轴中 boundaryGap 可以配置为 true 和 false。默认为 true，这时候刻度只是作为分隔线，标签和数据点都会在两个刻度之间的带(band)中间。
+                        nameGap: 30, //坐标轴名称与轴线之间的距离。
+                        splitArea: { //坐标轴在 grid 区域中的分隔区域，默认不显示。
+                            //show: true, //是否显示分隔区域
+                            //interval: 'auto', //坐标轴分隔区域的显示间隔，在类目轴中有效
+                        },
+                        axisLabel: { //坐标轴刻度标签的相关设置。
+                            //formatter: 'expr {value}',  // 使用字符串模板，模板变量为刻度默认标签 {value}
+                            show: true, //是否显示刻度标签。
+                            //interval: 'auto', //坐标轴刻度标签的显示间隔，在类目轴中有效。
+                            color: 'black',
+
+                        },
+                        splitLine: { //坐标轴在 grid 区域中的分隔线。
+                            show: true, //是否显示分隔线。默认数值轴显示，类目轴不显示。
+                            lineStyle: { //分隔线样式
+                                type: 'dashed', //分隔线线的类型。
+                            },
+                        },
+                        axisLine: { //坐标轴轴线相关设置。
+                            show: true, //是否显示坐标轴轴线。
+                            //onZero:false,//X 轴或者 Y 轴的轴线是否在另一个轴的 0 刻度上，只有在另一个轴为数值轴且包含 0 刻度时有效。
+                            //symbol:'arrow', //轴线两边的箭头, 默认不显示箭头，即 'none'
+                            lineStyle: { //轴线样式
+                                width: 2,
+                                color: 'black',
+                                //opacity: 1, //图形透明度。支持从 0 到 1 的数字，为 0 时不绘制该图形。
+                            },
+                        },
+                        axisTick: { //坐标轴刻度相关设置。
+                            show: true, //是否显示坐标轴刻度。
+                            //alignWithLabel: true,//类目轴中在 boundaryGap 为 true 的时候有效，可以保证刻度线和标签对齐,default: false
+
+                        }
+                    },
+                    yAxis: { //y轴
+                        type: 'value',
+                        splitArea: { //坐标轴在 grid 区域中的分隔区域，默认不显示。
+                            //show: true
+                        },
+                        axisLabel: { //坐标轴刻度标签的相关设置。
+                            //formatter: 'expr {value}',  // 使用字符串模板，模板变量为刻度默认标签 {value}
+                            show: true, //是否显示刻度标签。
+                            //interval: 'auto', //坐标轴刻度标签的显示间隔，在类目轴中有效。
+                            color: 'black',
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                type: 'dashed'
+                            },
+                        },
+                        axisLine: {
+                            show: true, //是否显示坐标轴轴线。
+                            //onZero:false,//X 轴或者 Y 轴的轴线是否在另一个轴的 0 刻度上，只有在另一个轴为数值轴且包含 0 刻度时有效。
+                            //symbol:'arrow', //轴线两边的箭头
+                            lineStyle: {
+                                width: 2,
+                                color: 'black',
+                            },
+                        },
+                    },
+                    series: [{
+                        name: 'boxplot', //箱形图
+                        type: 'boxplot',
+                        //legendHoverLink: true, //是否启用图例 hover 时的联动高亮。
+                        //hoverAnimation: false, //是否开启 hover 在 box 上的动画效果。
+                        itemStyle: { //盒须图样式。
+                            //color: '#fff', //boxplot图形的颜色。 默认从全局调色盘 option.color 获取颜色
+                            borderColor: 'blue', //boxplot图形的描边颜色。支持的颜色格式同 color，不支持回调函数。
+                        },
+                        data: testData,
+                        tooltip: { //注意：series.tooltip 仅在 tooltip.trigger 为 'item' 时有效。
+                            formatter: function(param) {
+                                return [
+                                    '簇名: ' + param.name,
+                                    '上边缘: ' + param.data[5],
+                                    '上四分位数: ' + param.data[4],
+                                    '中位数: ' + param.data[3],
+                                    '下四分位数: ' + param.data[2],
+                                    '下边缘: ' + param.data[1]
+                                ].join('<br/>')
+                            }
+                        }
+                    }]
+                };
+                myChart.setOption(option);
+
+
+                $("#box1").append("<div class='child1' id='" + "child1" + i + "'></div>")
+                var myChart = echarts.init(document.getElementById("child1" + i));
+                var yArr = [];
+                var xArr = [];
+
+                //debugger 0.04,0.13,0.35,0.7,0.35,0.13,0.04
+                var mean = parseFloat(datas[i].data.stdplot.mean);
+                var stdev = parseFloat(datas[i].data.stdplot.stdev);
+                var x = datas[i].data.stdplot.xaxis.split(',');
+                var y = datas[i].data.stdplot.yaxis.split(',')
+
+                var low = mean - 3 * stdev;
+                var up = mean + 3 * stdev;
+
+                x = addParam(x, low.toFixed(0).toString());
+                x = addParam(x, mean.toFixed(0).toString());
+                x = addParam(x, up.toFixed(0).toString());
+
+                //var top = getTop(y);
+                var top = (1 / Math.sqrt(2 * Math.PI) * stdev);
+                var mar = getParam(low.toFixed(0).toString(), mean.toFixed(0).toString(), up.toFixed(0).toString(), top);
+                //y.push(parseInt(top))
+                //var myParam = [low.toFixed(0).toString(),mean.toFixed(0).toString(),up.toFixed(0).toString()];
+                //debugger
+
+                //var mar = {'t':'6920'}
+                //debugger
+
+                for (var j = 0; j < x.length; j++) {
+                    var res = fun(x[j], mean, stdev).toFixed(2);
+                    yArr.push(res);
+
+                }
+                //    debugger
+                var colors = ['#7CCD7C', '#d14a61', '#675bba'];
+                var option = {
+                    color: colors,
+
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross'
+                        }
+                    },
+                    grid: {
+                        right: '20%'
+                    },
+                    toolbox: {
+                        feature: {
+                            dataView: {
+                                show: true,
+                                readOnly: false
+                            },
+                            restore: {
+                                show: true
+                            },
+                            saveAsImage: {
+                                show: true
+                            }
+                        }
+                    },
+                    legend: {
+                        data: ['原数据频率', '正态分布']
+                    },
+                    xAxis: [{
+                        type: 'category',
+                        axisTick: {
+                            alignWithLabel: true
+                        },
+                        data: x
+                    }],
+                    yAxis: [{
+                        type: 'value',
+                        name: '频率',
+                        position: 'right',
+                        axisLine: {
+                            lineStyle: {
+                                color: colors[1]
+                            }
+                        },
+                        axisLabel: {
+                            formatter: '{value}'
+                        }
+                    },
+                        {
+                            type: 'value',
+                            position: 'left',
+                            axisLine: {
+                                lineStyle: {
+                                    color: colors[0]
+                                }
+                            },
+                            axisLabel: {
+                                formatter: '{value}'
+                            }
+                        }
+                    ],
+                    series: [{
+                        name: '原数据频率',
+                        type: 'bar',
+                        yAxisIndex: 1,
+                        data: y
+                    },
+                        {
+                            name: '正态分布',
+                            type: 'line',
+                            smooth: true,
+                            yAxisIndex: 0,
+                            data: yArr
+                        },
+                        {
+                            name: '平行于y轴的趋势线',
+                            type: 'line',
+                            //data:[0],
+                            markLine: {
+                                itemStyle: { //盒须图样式。
+                                    color: '#000', //boxplot图形的颜色。 默认从全局调色盘 option.color 获取颜色
+                                    //borderColor: 'blue', //boxplot图形的描边颜色。支持的颜色格式同 color，不支持回调函数。
+                                    //    type: 'solid',
+                                    normal: {
+                                        lineStyle: {
+                                            width: 2,
+                                            type: 'solid', //'dotted'虚线 'solid'实线
+                                        },
+                                        label: {
+                                            show: true,
+                                            position: 'end',
+                                            color: 'black',
+                                            formatter: function(params) {
+                                                str = "-3μ";
+                                                return str
+                                            },
+
+                                        }
+
+                                    }
+
+                                },
+                                name: 'aa',
+                                //symbol:'none',//去掉箭头
+                                data: [
+                                    [{
+                                        coord: [mar.low, 0]
+                                    },
+                                        {
+                                            coord: [mar.low, mar.top]
+                                        } //如何获取grid上侧最大值，目前是写死的
+                                    ]
+                                ]
+                            }
+                        },
+
+                        {
+                            name: '平行于y轴的趋势线',
+                            type: 'line',
+                            //data:[0],
+                            markLine: {
+                                itemStyle: { //盒须图样式。
+                                    color: '#000', //boxplot图形的颜色。 默认从全局调色盘 option.color 获取颜色
+                                    //borderColor: 'blue', //boxplot图形的描边颜色。支持的颜色格式同 color，不支持回调函数。
+                                    //    type: 'solid',
+                                    normal: {
+                                        lineStyle: {
+                                            width: 2,
+                                            type: 'solid', //'dotted'虚线 'solid'实线
+                                        },
+                                        label: {
+                                            show: true,
+                                            position: 'end',
+                                            color: 'black',
+                                            formatter: function(params) {
+                                                str = "MEAN";
+                                                return str
+                                            },
+
+                                        }
+                                    }
+
+                                },
+                                name: 'bb',
+                                // symbol:'none',//去掉箭头
+                                data: [
+                                    [{
+                                        coord: [mar.mean, 0]
+                                    },
+                                        {
+                                            coord: [mar.mean, mar.top]
+                                        } //如何获取grid上侧最大值，目前是写死的
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            name: '平行于y轴的趋势线',
+                            type: 'line',
+
+                            //data:[0],
+                            markLine: {
+                                itemStyle: { //盒须图样式。
+                                    color: '#000', //boxplot图形的颜色。 默认从全局调色盘 option.color 获取颜色
+                                    //borderColor: 'blue', //boxplot图形的描边颜色。支持的颜色格式同 color，不支持回调函数。
+                                    //    type: 'solid',
+                                    normal: {
+                                        lineStyle: {
+                                            width: 2,
+                                            type: 'solid', //'dotted'虚线 'solid'实线
+                                        },
+                                        label: {
+                                            show: true,
+                                            position: 'end',
+                                            color: 'black',
+                                            formatter: function(params) {
+                                                str = "3μ";
+                                                return str
+                                            },
+
+                                        }
+
+                                    }
+
+                                },
+                                name: 'cc',
+                                yAxisIndex: 0,
+                                // symbol:'none',//去掉箭头
+                                data: [
+                                    [{
+                                        coord: [mar.up, 0]
+                                    },
+                                        {
+                                            coord: [mar.up, mar.top]
+                                        } //如何获取grid上侧最大值，目前是写死的
+                                    ]
+                                ]
+                            }
+                        },
+
+                    ]
+                };
+                myChart.setOption(option);
+            }
+
+        });
+    </script>
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <p>姓名：</p>
+                                <input type="text" name="ksUsername"/>
+                            </li>
+                            <li>
+                                <p>平均分：</p>
+                                <input type="text" name="mean"/>
+                            </li>
+                            <li>
+                                <p>最低分数：</p>
+                                <input type="text" name="lower"/>
+                            </li>
+                            <li>
+                                <p>最高分数：</p>
+                                <input type="text" name="upper"/>
+                            </li>
+                            <li>
+                                <p>频率：</p>
+                                <input type="text" name="yaxis"/>
+                            </li>
+                            <li>
+                                <p>标准偏差：</p>
+                                <input type="text" name="stdev"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="system:zt:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="system:zt:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="system:zt:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="system:zt:export">
+                    <i class="fa fa-download"></i> 导出
+                 </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:zt:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:zt:remove')}]];
+        var prefix = ctx + "system/zt";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "成绩统计及正态分布信息",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field : 'ksId', 
+                    title : '编号',
+                    visible: false
+                },
+                {
+                    field : 'ksUsername', 
+                    title : '姓名'
+                },
+                {
+                    field : 'xaxis', 
+                    title : '全期评分'
+                },
+                {
+                    field : 'mean', 
+                    title : '平均分'
+                },
+                {
+                    field : 'lower', 
+                    title : '最低分数'
+                },
+                {
+                    field : 'upper', 
+                    title : '最高分数'
+                },
+                {
+                    field : 'yaxis', 
+                    title : '频率'
+                },
+                {
+                    field : 'stdev', 
+                    title : '标准偏差'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.ksId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.ksId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+     <div>
+         <div id="box1"></div>
+     </div>
+</body>
+</html>

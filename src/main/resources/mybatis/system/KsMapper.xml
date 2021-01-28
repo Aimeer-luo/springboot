@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.ks.mapper.KsMapper">
+    
+    <resultMap type="Ks" id="KsResult">
+        <result property="ksId"    column="ks_id"    />
+        <result property="ksPic"    column="ks_pic"    />
+        <result property="ksUsername"    column="ks_username"    />
+        <result property="ksLc"    column="ks_lc"    />
+        <result property="ksHs"    column="ks_hs"    />
+        <result property="ksTime"    column="ks_time"    />
+        <result property="ksStart"    column="ks_start"    />
+        <result property="ksEnd"    column="ks_end"    />
+    </resultMap>
+
+    <sql id="selectKsVo">
+        select ks_id, ks_pic, ks_username, ks_lc, ks_hs, ks_time, ks_start, ks_end from sys_ks
+    </sql>
+
+    <select id="selectKsList" parameterType="Ks" resultMap="KsResult">
+        <include refid="selectKsVo"/>
+        <where>  
+            <if test="ksUsername != null  and ksUsername != ''"> and ks_username like concat('%', #{ksUsername}, '%')</if>
+            <if test="ksLc != null  and ksLc != ''"> and ks_lc = #{ksLc}</if>
+            <if test="ksHs != null  and ksHs != ''"> and ks_hs = #{ksHs}</if>
+            <if test="ksTime != null "> and ks_time = #{ksTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectKsById" parameterType="Long" resultMap="KsResult">
+        <include refid="selectKsVo"/>
+        where ks_id = #{ksId}
+    </select>
+        
+    <insert id="insertKs" parameterType="Ks" useGeneratedKeys="true" keyProperty="ksId">
+        insert into sys_ks
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ksPic != null  and ksPic != ''">ks_pic,</if>
+            <if test="ksUsername != null  and ksUsername != ''">ks_username,</if>
+            <if test="ksLc != null  and ksLc != ''">ks_lc,</if>
+            <if test="ksHs != null  and ksHs != ''">ks_hs,</if>
+            <if test="ksTime != null ">ks_time,</if>
+            <if test="ksStart != null  and ksStart != ''">ks_start,</if>
+            <if test="ksEnd != null  and ksEnd != ''">ks_end,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ksPic != null  and ksPic != ''">#{ksPic},</if>
+            <if test="ksUsername != null  and ksUsername != ''">#{ksUsername},</if>
+            <if test="ksLc != null  and ksLc != ''">#{ksLc},</if>
+            <if test="ksHs != null  and ksHs != ''">#{ksHs},</if>
+            <if test="ksTime != null ">#{ksTime},</if>
+            <if test="ksStart != null  and ksStart != ''">#{ksStart},</if>
+            <if test="ksEnd != null  and ksEnd != ''">#{ksEnd},</if>
+         </trim>
+    </insert>
+
+    <update id="updateKs" parameterType="Ks">
+        update sys_ks
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ksPic != null  and ksPic != ''">ks_pic = #{ksPic},</if>
+            <if test="ksUsername != null  and ksUsername != ''">ks_username = #{ksUsername},</if>
+            <if test="ksLc != null  and ksLc != ''">ks_lc = #{ksLc},</if>
+            <if test="ksHs != null  and ksHs != ''">ks_hs = #{ksHs},</if>
+            <if test="ksTime != null ">ks_time = #{ksTime},</if>
+            <if test="ksStart != null  and ksStart != ''">ks_start = #{ksStart},</if>
+            <if test="ksEnd != null  and ksEnd != ''">ks_end = #{ksEnd},</if>
+        </trim>
+        where ks_id = #{ksId}
+    </update>
+
+    <delete id="deleteKsById" parameterType="Long">
+        delete from sys_ks where ks_id = #{ksId}
+    </delete>
+
+    <delete id="deleteKsByIds" parameterType="String">
+        delete from sys_ks where ks_id in 
+        <foreach item="ksId" collection="array" open="(" separator="," close=")">
+            #{ksId}
+        </foreach>
+    </delete>
+    
+</mapper>

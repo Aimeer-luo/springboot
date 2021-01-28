@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.chengji.mapper.ChengjiMapper">
+    
+    <resultMap type="Chengji" id="ChengjiResult">
+        <result property="chengjiId"    column="chengji_id"    />
+        <result property="ksUsername"    column="ks_username"    />
+        <result property="ksLc"    column="ks_lc"    />
+        <result property="ksHs"    column="ks_hs"    />
+        <result property="ksTime"    column="ks_time"    />
+        <result property="chengjiMark"    column="chengji_mark"    />
+        <result property="chengjiJs"    column="chengji_js"    />
+        <result property="chengjiStatus"    column="chengji_status"    />
+    </resultMap>
+
+    <sql id="selectChengjiVo">
+        select chengji_id, ks_username, ks_lc, ks_hs, ks_time, chengji_mark, chengji_js, chengji_status from sys_chengji
+    </sql>
+
+    <select id="selectChengjiList" parameterType="Chengji" resultMap="ChengjiResult">
+        <include refid="selectChengjiVo"/>
+        <where>  
+            <if test="ksUsername != null  and ksUsername != ''"> and ks_username like concat('%', #{ksUsername}, '%')</if>
+            <if test="ksLc != null  and ksLc != ''"> and ks_lc = #{ksLc}</if>
+            <if test="ksHs != null  and ksHs != ''"> and ks_hs = #{ksHs}</if>
+            <if test="ksTime != null "> and ks_time = #{ksTime}</if>
+            <if test="chengjiMark != null  and chengjiMark != ''"> and chengji_mark = #{chengjiMark}</if>
+            <if test="chengjiJs != null  and chengjiJs != ''"> and chengji_js = #{chengjiJs}</if>
+            <if test="chengjiStatus != null  and chengjiStatus != ''"> and chengji_status = #{chengjiStatus}</if>
+        </where>
+    </select>
+    
+    <select id="selectChengjiById" parameterType="Long" resultMap="ChengjiResult">
+        <include refid="selectChengjiVo"/>
+        where chengji_id = #{chengjiId}
+    </select>
+        
+    <insert id="insertChengji" parameterType="Chengji" useGeneratedKeys="true" keyProperty="chengjiId">
+        insert into sys_chengji
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ksUsername != null  and ksUsername != ''">ks_username,</if>
+            <if test="ksLc != null  and ksLc != ''">ks_lc,</if>
+            <if test="ksHs != null  and ksHs != ''">ks_hs,</if>
+            <if test="ksTime != null ">ks_time,</if>
+            <if test="chengjiMark != null  and chengjiMark != ''">chengji_mark,</if>
+            <if test="chengjiJs != null  and chengjiJs != ''">chengji_js,</if>
+            <if test="chengjiStatus != null  and chengjiStatus != ''">chengji_status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ksUsername != null  and ksUsername != ''">#{ksUsername},</if>
+            <if test="ksLc != null  and ksLc != ''">#{ksLc},</if>
+            <if test="ksHs != null  and ksHs != ''">#{ksHs},</if>
+            <if test="ksTime != null ">#{ksTime},</if>
+            <if test="chengjiMark != null  and chengjiMark != ''">#{chengjiMark},</if>
+            <if test="chengjiJs != null  and chengjiJs != ''">#{chengjiJs},</if>
+            <if test="chengjiStatus != null  and chengjiStatus != ''">#{chengjiStatus},</if>
+         </trim>
+    </insert>
+
+    <update id="updateChengji" parameterType="Chengji">
+        update sys_chengji
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ksUsername != null  and ksUsername != ''">ks_username = #{ksUsername},</if>
+            <if test="ksLc != null  and ksLc != ''">ks_lc = #{ksLc},</if>
+            <if test="ksHs != null  and ksHs != ''">ks_hs = #{ksHs},</if>
+            <if test="ksTime != null ">ks_time = #{ksTime},</if>
+            <if test="chengjiMark != null  and chengjiMark != ''">chengji_mark = #{chengjiMark},</if>
+            <if test="chengjiJs != null  and chengjiJs != ''">chengji_js = #{chengjiJs},</if>
+            <if test="chengjiStatus != null  and chengjiStatus != ''">chengji_status = #{chengjiStatus},</if>
+        </trim>
+        where chengji_id = #{chengjiId}
+    </update>
+
+    <delete id="deleteChengjiById" parameterType="Long">
+        delete from sys_chengji where chengji_id = #{chengjiId}
+    </delete>
+
+    <delete id="deleteChengjiByIds" parameterType="String">
+        delete from sys_chengji where chengji_id in 
+        <foreach item="chengjiId" collection="array" open="(" separator="," close=")">
+            #{chengjiId}
+        </foreach>
+    </delete>
+    
+</mapper>

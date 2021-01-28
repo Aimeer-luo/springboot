@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+	<th:block th:include="include :: header('通知公告列表')" />
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.2"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/library/DistanceTool/1.2/src/DistanceTool_min.js"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>
+	<link rel="stylesheet" href="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" />
+</head>
+<body class="gray-bg">
+   <div class="ui-layout-west">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-grid"></i> 考场规划
+				<div style="width:720px;height:340px;border:1px solid gray" id="map">
+				</div>
+				<input type="button" value="开启" onclick="myDis.open();" />
+				<input type="button" value="关闭" onclick="myDis.close()" />
+			</div>
+
+		</div>
+
+	</div>
+  </div>
+
+    <div class="container-div">
+		<div class="row">
+			<div class="col-sm-12 search-collapse">
+				<form id="notice-form">
+					<div class="select-list">
+						<ul>
+							<li>
+								公告标题：<input type="text" name="noticeTitle"/>
+							</li>
+							<li>
+								操作人员：<input type="text" name="createBy"/>
+							</li>
+							<li>
+								公告类型：<select name="noticeType" th:with="type=${@dict.getType('sys_notice_type')}">
+									<option value="">所有</option>
+									<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+								</select>
+							</li>
+							<li>
+								<a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+								<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+							</li>
+						</ul>
+					</div>
+				</form>
+			</div>
+			
+	        <div class="btn-group-sm" id="toolbar" role="group">
+		        <a class="btn btn-success" onclick="$.operate.addFull()" shiro:hasPermission="system:notice:add">
+		            <i class="fa fa-plus"></i> 新增
+		        </a>
+		        <a class="btn btn-primary single disabled" onclick="$.operate.editFull()" shiro:hasPermission="system:notice:edit">
+		            <i class="fa fa-edit"></i> 修改
+		        </a>
+		        <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="system:notice:remove">
+		            <i class="fa fa-remove"></i> 删除
+		        </a>
+
+	        </div>
+	        
+	        <div class="col-sm-12 select-table table-striped">
+	            <table id="bootstrap-table"></table>
+	        </div>
+    	</div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:notice:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:notice:remove')}]];
+        var types = [[${@dict.getType('sys_notice_type')}]];
+        var datas = [[${@dict.getType('sys_notice_status')}]];
+        var prefix = ctx + "system/notice";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                modalName: "公告",
+                columns: [{
+		            checkbox: true
+		        },
+				{
+					field : 'noticeId', 
+					title : '序号' 
+				},
+				{
+					field : 'noticeTitle', 
+					title : '公告标题' 
+				},
+					{
+						field : 'noticeContent',
+						title : '公告内容'
+					},
+				{
+		            field: 'noticeType',
+		            title: '公告类型',
+		            align: 'center',
+		            formatter: function(value, row, index) {
+		            	return $.table.selectDictLabel(types, value);
+		            }
+		        },
+				{
+		            field: 'status',
+		            title: '状态',
+		            align: 'center',
+		            formatter: function(value, row, index) {
+		            	return $.table.selectDictLabel(datas, value);
+		            }
+		        },
+
+				{
+					field : 'createBy', 
+					title : '创建者' 
+				},
+				{
+		            field: 'createTime',
+		            title: '创建时间',
+		            sortable: true
+		        },
+		        {
+		            title: '操作',
+		            align: 'center',
+		            formatter: function(value, row, index) {
+		            	var actions = [];
+		            	actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.editFull(\'' + row.noticeId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.noticeId + '\')"><i class="fa fa-remove"></i>删除</a>');
+						return actions.join('');
+		            }
+		        }]
+            };
+            $.table.init(options);
+        });
+    </script>
+   <script type="text/javascript">
+
+
+	   var map = new BMap.Map("map");
+	   map.centerAndZoom(new BMap.Point(111.322852,23.503845),15);
+	   map.addControl(new BMap.NavigationControl());
+	   var myDis = new BMapLib.DistanceTool(map);
+	   var styleOptions = {
+		   strokeColor:"red",    //边线颜色。
+		   fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+		   strokeWeight: 3,       //边线的宽度，以像素为单位。
+		   strokeOpacity: 0.8,    //边线透明度，取值范围0 - 1。
+		   fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+		   strokeStyle: 'solid' //边线的样式，solid或dashed。
+	   }
+	   //实例化鼠标绘制工具
+	   var drawingManager = new BMapLib.DrawingManager(map, {
+		   isOpen: false, //是否开启绘制模式
+		   enableDrawingTool: true, //是否显示工具栏
+		   drawingToolOptions: {
+			   anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
+			   offset: new BMap.Size(5, 5), //偏离值
+		   },
+		   circleOptions: styleOptions, //圆的样式
+		   polylineOptions: styleOptions, //线的样式
+		   polygonOptions: styleOptions, //多边形的样式
+		   rectangleOptions: styleOptions //矩形的样式
+	   });
+
+	   // 如果要调试事件接口，请打开下方屏蔽代码，
+	   // 在firefox或者chrome下查看调试信息
+
+	   /*myDis.addEventListener("drawend", function(e) {
+           console.log("drawend");
+           console.log(e.points);
+           console.log(e.overlays);
+           console.log(e.distance);
+       });
+
+       myDis.addEventListener("addpoint", function(e) {
+           console.log("addpoint");
+           console.log(e.point);
+           console.log(e.pixel);
+           console.log(e.index);
+           console.log(e.distance);
+       });
+
+       myDis.addEventListener("removepolyline", function(e) {
+           console.log("removepolyline");
+           console.log(e);
+       });
+       */
+   </script>
+</body>
+</html>

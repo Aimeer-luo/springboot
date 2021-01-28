@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.zt.mapper.ZtMapper">
+    
+    <resultMap type="Zt" id="ZtResult">
+        <result property="ksId"    column="ks_id"    />
+        <result property="ksUsername"    column="ks_username"    />
+        <result property="xaxis"    column="xaxis"    />
+        <result property="mean"    column="mean"    />
+        <result property="lower"    column="lower"    />
+        <result property="upper"    column="upper"    />
+        <result property="yaxis"    column="yaxis"    />
+        <result property="stdev"    column="stdev"    />
+    </resultMap>
+
+    <sql id="selectZtVo">
+        select ks_id, ks_username, xaxis, mean, lower, upper, yaxis, stdev from sys_zt
+    </sql>
+
+    <select id="selectZtList" parameterType="Zt" resultMap="ZtResult">
+        <include refid="selectZtVo"/>
+        <where>  
+            <if test="ksUsername != null  and ksUsername != ''"> and ks_username like concat('%', #{ksUsername}, '%')</if>
+            <if test="xaxis != null  and xaxis != ''"> and xaxis = #{xaxis}</if>
+            <if test="mean != null  and mean != ''"> and mean = #{mean}</if>
+            <if test="lower != null  and lower != ''"> and lower = #{lower}</if>
+            <if test="upper != null  and upper != ''"> and upper = #{upper}</if>
+            <if test="yaxis != null  and yaxis != ''"> and yaxis = #{yaxis}</if>
+            <if test="stdev != null  and stdev != ''"> and stdev = #{stdev}</if>
+        </where>
+    </select>
+    
+    <select id="selectZtById" parameterType="Long" resultMap="ZtResult">
+        <include refid="selectZtVo"/>
+        where ks_id = #{ksId}
+    </select>
+        
+    <insert id="insertZt" parameterType="Zt" useGeneratedKeys="true" keyProperty="ksId">
+        insert into sys_zt
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ksUsername != null  and ksUsername != ''">ks_username,</if>
+            <if test="xaxis != null  and xaxis != ''">xaxis,</if>
+            <if test="mean != null  and mean != ''">mean,</if>
+            <if test="lower != null  and lower != ''">lower,</if>
+            <if test="upper != null  and upper != ''">upper,</if>
+            <if test="yaxis != null  and yaxis != ''">yaxis,</if>
+            <if test="stdev != null  and stdev != ''">stdev,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ksUsername != null  and ksUsername != ''">#{ksUsername},</if>
+            <if test="xaxis != null  and xaxis != ''">#{xaxis},</if>
+            <if test="mean != null  and mean != ''">#{mean},</if>
+            <if test="lower != null  and lower != ''">#{lower},</if>
+            <if test="upper != null  and upper != ''">#{upper},</if>
+            <if test="yaxis != null  and yaxis != ''">#{yaxis},</if>
+            <if test="stdev != null  and stdev != ''">#{stdev},</if>
+         </trim>
+    </insert>
+
+    <update id="updateZt" parameterType="Zt">
+        update sys_zt
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ksUsername != null  and ksUsername != ''">ks_username = #{ksUsername},</if>
+            <if test="xaxis != null  and xaxis != ''">xaxis = #{xaxis},</if>
+            <if test="mean != null  and mean != ''">mean = #{mean},</if>
+            <if test="lower != null  and lower != ''">lower = #{lower},</if>
+            <if test="upper != null  and upper != ''">upper = #{upper},</if>
+            <if test="yaxis != null  and yaxis != ''">yaxis = #{yaxis},</if>
+            <if test="stdev != null  and stdev != ''">stdev = #{stdev},</if>
+        </trim>
+        where ks_id = #{ksId}
+    </update>
+
+    <delete id="deleteZtById" parameterType="Long">
+        delete from sys_zt where ks_id = #{ksId}
+    </delete>
+
+    <delete id="deleteZtByIds" parameterType="String">
+        delete from sys_zt where ks_id in 
+        <foreach item="ksId" collection="array" open="(" separator="," close=")">
+            #{ksId}
+        </foreach>
+    </delete>
+    
+</mapper>

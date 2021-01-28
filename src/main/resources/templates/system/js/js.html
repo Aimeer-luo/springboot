@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('计算器列表')" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>频率分布计算器</title>
+    <link type="text/css" rel="stylesheet" href="../templates/css/mpublic_v2.css" />
+    <link type="text/css" rel="stylesheet" href="../templates/css/math/v2/base.css" />
+    <link type="text/css" rel="stylesheet" href="../templates/css/math/v2/number.css" />
+    <SCRIPT language=JavaScript src="/RuoYi-fast/src/main/resources/templates/system/chengji/geometry.js"></SCRIPT>
+    <script language=javascript>
+
+        function fixed(s,n){var str=s+" ";var pat=/e/i;var res=str.match(pat);if(res=="e"||res=="E"){return s;}
+            s=1*s;var s_ori=s;var flag=0;if(s<0){s=-1*s;flag=1;}
+            var val=Math.pow(0.1,n);if(s<10*val){return s_ori;}
+            if(str.length>(n+1)){s=s.toFixed(n);s=s.replace(/0+$/,"");s=s.replace(/\.$/,"");}
+            if(flag==1){s=-1*s;}return s;}
+        function lfixsci(s,n)
+        {var tp=s;var tpStr=new String(tp);if((tpStr.indexOf('E')!=-1)||(tpStr.indexOf('e')!=-1)){var regExp=/^(\d+.\d+)[Ee]([\+\-]?\d+)$/;var result=regExp.exec(tp);var num="";var power="";if(result!=null){num=result[1];power=result[2];var res=fixed(num,n);if(res==10){res=1;power=1*power+1;power="+"+power;}
+            res+="e";res+=power;return res;}
+        else{return s;}}
+        else{return s;}}
+        function lfixed(s,n){var str=s+" ";var pat=/e/i;var res=str.match(pat);if(res=="e"||res=="E"){s=lfixsci(s,n);return s;}
+            s=1*s;var s_ori=s;var flag=0;if(s<0){s=-1*s;flag=1;}
+            if(str.length>(n+1)){s=s.toFixed(n);s=s.replace(/0+$/,"");s=s.replace(/\.$/,"");}
+            if(flag==1){s=-1*s;}return s;}
+        function lfix(s){var s_ori=s;if(s<0)s=-1*s;var tpStr=new String(s);if((tpStr.indexOf('E')!=-1)||(tpStr.indexOf('e')!=-1)){s=lfixsci(s,6);return s;}
+            s=1*s;if(s>100000000){s=s.toExponential(8);s=lfixsci(s,6);return s;}
+            if(s>0.1){s=lfixed(s,6);}
+            else if(s>0.01){s=lfixed(s,8);}
+            else if(s<0.01&&s>0.0001){s=lfixed(s,10);}
+            else if(s<0.0001&&s>0.000001){s=lfixed(s,12);}
+            else if(s<0.000001&&s>0.00000001){s=lfixed(s,14);}
+            else if(s<0.00000001&&s>0.0000000001){s=lfixed(s,16);}
+            else if(s<0.0000000001&&s>0.000000000001){s=lfixed(s,18);}
+            else if(s<0.000000000001&&s>0.00000000000001){s=lfixed(s,20);}
+            else if(s<0.00000000000001&&s>0.0000000000000001){s=lfixed(s,22);}
+            else if(s<0.0000000000000001&&s>0.000000000000000001){s=lfixed(s,24);}
+            else if(s<0.000000000000000001&&s>0.00000000000000000001){s=lfixed(s,26);}
+            else if(s<0.00000000000000000001&&s>0.0000000000000000000001){s=lfixed(s,28);}
+            else if(s<0.0000000000000000000001&&s>0.000000000000000000000001){s=lfixed(s,30);}
+            if(s_ori<0)s=-1*s;return s;}
+        function afocus(a){}
+
+        function ztclear()
+        {
+            document.zt.n.value = '';
+            document.zt.t.value = '';
+            document.zt.max.value = '';
+            document.zt.min.value = '';
+            document.zt.r.value = '';
+            document.zt.m.value = '';
+            document.zt.d.value = '';
+            document.zt.e.value = '';
+            document.getElementById('output').innerHTML='';
+            document.zt.n.focus();
+        }
+        function lmean(arr)
+        {
+            var len = 0;
+            var sum = 0;
+
+            for(var i=0;i<arr.length;i++)
+            {
+                if (arr[i] == ""){}
+                else if (!isNum(arr[i]))
+                {
+                    alert(arr[i] + " 不是数字。");
+                    return;
+                }
+                else
+                {
+                    len = len + 1;
+                    sum = sum + parseFloat(arr[i]);
+                }
+            }
+
+            return sum / len;
+        }
+        function lmax(arr)
+        {
+            var max = -99999;
+
+            for(var i=0;i<arr.length;i++)
+            {
+                if (arr[i] == ""){}
+                else if (!isNum(arr[i]))
+                {
+                    alert(arr[i] + "不是数字。");
+                    return;
+                }
+                else
+                {
+                    if (i == 0) {max = arr[i];}
+                    else if (max < arr[i]) {max = arr[i];}
+                }
+            }
+
+            return max;
+        }
+        function lmin(arr)
+        {
+            var min = 99999;
+
+            for(var i=0;i<arr.length;i++)
+            {
+                if (arr[i] == ""){}
+                else if (!isNum(arr[i]))
+                {
+                    alert(arr[i] + " 不是数字。");
+                    return;
+                }
+                else
+                {
+                    if (i == 0) {min = arr[i];}
+                    else if (min > arr[i]) {min = arr[i];}
+                }
+            }
+
+            return min;
+        }
+        function llen(arr)
+        {
+            var len=0;
+
+            for(var i=0;i<arr.length;i++)
+            {
+                if (arr[i] == ""){}
+                else if (!isNum(arr[i]))
+                {
+                    alert(arr[i] + " 不是数字。");
+                    return;
+                }
+                else
+                {
+                    len = len + 1;
+                }
+            }
+
+            return len;
+        }
+        function variance(arr)
+        {
+            var len = 0;
+            var sum=0;
+            for(var i=0;i<arr.length;i++)
+            {
+                if (arr[i] == ""){}
+                else if (!isNum(arr[i]))
+                {
+                    alert(arr[i] + " 不是一个数字。");
+                    return 0;
+                }
+                else
+                {
+                    len = len + 1;
+                    sum = sum + parseFloat(arr[i]);
+                }
+            }
+
+            var v = 0;
+            if (len > 1)
+            {
+                var mean = sum / len;
+                for(var i=0;i<arr.length;i++)
+                {
+                    if (arr[i] == ""){}
+                    else
+                    {
+                        v = v + (arr[i] - mean) * (arr[i] - mean);
+                    }
+                }
+
+                return v / (len);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        function isNum(args)
+        {
+            args = args.toString();
+
+            if (args.length == 0)
+                return false;
+
+            for (var i = 0;  i<args.length;  i++)
+            {
+                if ((args.substring(i,i+1) < "0" || args.substring(i, i+1) > "9") && args.substring(i, i+1) != "."&& args.substring(i, i+1) != "-")
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function calzt()
+        {
+            var n = document.zt.n.value;
+            var ss = document.getElementById('output');
+
+            var arr = new Array;
+
+            if (n.indexOf("\r\n") != -1){arr = n.split("\r\n");}
+            else if (n.indexOf("\n") != -1){arr = n.split("\n");}
+            else if (n.indexOf(",") != -1){arr = n.split(",");}
+            else if (n.indexOf("\t") != -1){arr = n.split("\t");}
+            else{arr = n.split(" ");}
+
+            var v = variance(arr);
+            var m = lmean(arr);
+            var max = lmax(arr);
+            var min = lmin(arr);
+            var r = max - min;
+            var len = llen(arr);
+
+            arr.sort(function(a,b){return a-b});
+
+            var cnt = 1;
+            var prev = arr[0];
+            var str = "频率分布表：<br><center><table class=countrytable><tbody><tr style=\"color:black;background-color:#cccccc\"><td width=100>元素</td><td width=100>频率</td></tr>\n";
+
+            for (var i =0; i<arr.length;i++)
+            {
+                if (arr[i] == ""){}
+                else if (!isNum(arr[i]))
+                {
+                    alert(arr[i] + " 不是一个数。");
+                    return 0;
+                }
+                else
+                {
+                    if (i>0)
+                    {
+                        if (arr[i] != prev)
+                        {
+                            str += "<tr><td width=100>" + prev + "</td><td width=100>" +  cnt + "</td></tr>\n";
+                            cnt = 1;
+                            prev=arr[i];
+                        }
+                        else
+                        {
+                            cnt = cnt + 1;
+                        }
+                    }
+
+                }
+            }
+            str += "<tr><td width=100>" + arr[i-1] + "</td><td width=100>" +  cnt + "</td></tr></tbody></table></center>";
+            //*/
+            ss.innerHTML = str;
+
+            var sd = Math.sqrt(v);
+            var se = Math.sqrt(v/(len-1));
+
+            sd = fixed(sd,6);
+            se = fixed(se,6);
+            m = fixed(m,6);
+
+
+            document.zt.m.value = m;
+            document.zt.max.value = max;
+            document.zt.min.value = min;
+            document.zt.r.value = r;
+            document.zt.t.value = len;
+            document.zt.d.value = sd;
+            document.zt.e.value = se;
+        }
+    </script>
+</head>
+<body class="gray-bg">
+<h2>频率分布计算器</h2>
+<div class="bd">
+    <div class="mod_box_t3 fn_box">
+        <div class="box_con">
+            <div class="mathmod_form">
+                <div class="homeintronoborder">
+                    <form name="zt">
+                        <table>
+                            <tbody><tr>
+                                <td>
+                                    <div class="forminput">
+
+                                        <textarea name="n" cols="1" rows="10" value="1,2,3,4" onfocus="if(this.value=='1,2,3,4') {this.value=''}" onblur="if(this.value=='') this.value='1,2,3,4'">1,2,3,4</textarea>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td colspan="2"></td>
+                                <td>
+                                    <input onclick="calzt()" type="button" name="Calculate" value="计算">
+                                    <input onclick="ztclear()" type="reset" name="reset" value="清除">
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td align="left">输入总数：</td>
+                                <td></td>
+                                <td> <input readonly="" name="t" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">最大值：</td>
+                                <td></td>
+                                <td> <input readonly="" name="max" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">最小值：</td>
+                                <td></td>
+                                <td> <input readonly="" name="min" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">范围：</td>
+                                <td></td>
+                                <td> <input readonly="" name="r" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">平均值：</td>
+                                <td></td>
+                                <td> <input readonly="" name="m" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">标准偏差：</td>
+                                <td></td>
+                                <td> <input readonly="" name="d" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">Standard Error:</td>
+                                <td></td>
+                                <td> <input readonly="" name="e" type="text" size=18> </td>
+                                <td>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                    <div id="output"></div>
+                </div>
+            </div>
+        </div>
+        <i class="flag_tl_t3"></i>
+        <i class="flag_tr_t3"></i>
+        <i class="flag_bl_t3"></i>
+        <i class="flag_br_t3"></i>
+    </div>
+</body>
+</html>
